@@ -1,0 +1,33 @@
+﻿@page "/"
+
+<h1>Hello, world!</h1>
+
+<p>This device has geolocation @HasGeolocation</p>
+<p>Your Latitude:  @Lat</p>
+<p>Your Longitued: @Long</p>
+Welcome to your new app.
+
+<SurveyPrompt Title="How is Blazor working for you?" />
+
+@functions  {
+    bool HasGeolocation;
+    double Lat;
+    double Long;
+    protected override async Task OnInitAsync()
+    {
+        HasGeolocation = await Geolocation.HasGeolocationFeature();
+        Console.WriteLine("Init async");
+        Console.WriteLine(HasGeolocation);
+        Action<Position> handle = (p) =>
+        {
+            Lat = p.Coords.Latitude;
+            Long = p.Coords.Longitude;
+            StateHasChanged();
+        };
+        Action<PositionError> handleError = (e) => { Console.WriteLine(e); };
+        var g = new Geolocation();
+        g.OnWatchPosition = handle;
+        g.OnWatchPositionError = handleError;
+        await g.WatchPosition();
+    }
+}
