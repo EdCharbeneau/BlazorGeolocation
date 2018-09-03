@@ -14,18 +14,15 @@
         };
     },
     hasGeolocaitonFeature: function () {
-        console.log("has geo");
         return navigator.geolocation ? true : false;
     },
     getCurrentPosition: function (geolocationRef, options) {
         const success = (result) => {
-            console.log("success");
             geolocationRef.invokeMethodAsync('RaiseOnGetPosition', ejcGeolocation.toSerializeable(result));
         };
         const error = (er) =>
             geolocationRef.invokeMethodAsync('RaiseOnGetPositionError', er.code);
         if (ejcGeolocation.hasGeolocaitonFeature()) {
-            console.log("getGeo");
             navigator.geolocation.getCurrentPosition(success, error, options);
         }
     },
