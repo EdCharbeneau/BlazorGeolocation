@@ -6,57 +6,42 @@ namespace EJC.Blazor.Geolocation
 {
     public class Geolocation
     {
-        public async Task GetCurrentPosition(PositionOptions options = null) => 
-            await JSRuntime.Current.InvokeAsync<bool>("ejcGeolocation.getCurrentPosition", new DotNetObjectRef(this), options);
+        private Action<Position> OnWatchPosition;
+        private Action<Position> OnGetPosition;
+        private Action<PositionError> OnWatchPositionError;
+        private Action<PositionError> OnGetPositionError;
 
-        public static async Task<bool> HasGeolocationFeature() => 
+        public async Task GetCurrentPosition(Action<Position> onSuccess,
+                                             Action<PositionError> onError,
+                                             PositionOptions options = null)
+        {
+            OnGetPosition = onSuccess;
+            OnGetPositionError = onError;
+            await JSRuntime.Current.InvokeAsync<bool>("ejcGeolocation.getCurrentPosition", new DotNetObjectRef(this), options);
+        }
+        public static async Task<bool> HasGeolocationFeature() =>
             await JSRuntime.Current.InvokeAsync<bool>("ejcGeolocation.hasGeolocaitonFeature");
 
-        public async Task<int> WatchPosition(PositionOptions options = null) => 
-            await JSRuntime.Current.InvokeAsync<int>("ejcGeolocation.watchPosition", new DotNetObjectRef(this), options);
-
-        public async Task ClearWatch(int watchId, Action onPositionReported) => 
+        public async Task<int> WatchPosition(Action<Position> onSuccess,
+                                             Action<PositionError> onError,
+                                             PositionOptions options = null)
+        {
+            OnWatchPosition = onSuccess;
+            OnWatchPositionError = onError;
+            return await JSRuntime.Current.InvokeAsync<int>("ejcGeolocation.watchPosition", new DotNetObjectRef(this), options);
+        }
+        public async Task ClearWatch(int watchId, Action onPositionReported) =>
             await JSRuntime.Current.InvokeAsync<int>("ejcGeolocation.clearWatch", watchId);
 
         [JSInvokable]
-        public void RaiseOnGetPosition(Position p) => Invoke(OnGetPosition, p);
+        public void RaiseOnGetPosition(Position p) => OnGetPosition?.Invoke(p);
         [JSInvokable]
-        public void RaiseOnGetPositionError(PositionError err) => Invoke(OnGetPositionError, err);
-
-        [JSInvokable]
-        public void RaiseOnWatchPosition(Position p) => Invoke(OnWatchPosition, p);
+        public void RaiseOnGetPositionError(PositionError err) => OnGetPositionError?.Invoke(err);
 
         [JSInvokable]
-        public void RaiseOnWatchPositionError(Position p) => Invoke(OnWatchPositionError, p);
+        public void RaiseOnWatchPosition(Position p) => OnWatchPosition?.Invoke(p);
 
-        public MulticastDelegate OnWatchPosition { get; set; }
-        public MulticastDelegate OnGetPosition { get; set; }
-        public MulticastDelegate OnWatchPositionError { get; set; }
-        public MulticastDelegate OnGetPositionError { get; set; }
-        public Task Invoke<T>(MulticastDelegate del, T e)
-        {
-            switch (del)
-            {
-                case Action action:
-                    action.Invoke();
-                    return Task.CompletedTask;
-
-                case Action<T> actionEventArgs:
-                    actionEventArgs.Invoke(e);
-                    return Task.CompletedTask;
-
-                case Func<Task> func:
-                    return func.Invoke();
-
-                case Func<T, Task> funcEventArgs:
-                    return funcEventArgs.Invoke(e);
-
-                case MulticastDelegate @delegate:
-                    return @delegate.DynamicInvoke(e) as Task ?? Task.CompletedTask;
-
-                case null:
-                    return Task.CompletedTask;
-            }
-        }
+        [JSInvokable]
+        public void RaiseOnWatchPositionError(PositionError err) => OnWatchPositionError?.Invoke(err);
     }
 }
