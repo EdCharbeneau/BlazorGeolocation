@@ -13,7 +13,7 @@
             "timestamp": new Date(e.timestamp)
         };
     },
-    hasGeolocaitonFeature: function () {
+    hasGeolocationFeature: function () {
         return navigator.geolocation ? true : false;
     },
     getCurrentPosition: function (geolocationRef, options) {
@@ -22,7 +22,7 @@
         };
         const error = (er) =>
             geolocationRef.invokeMethodAsync('RaiseOnGetPositionError', er.code);
-        if (ejcGeolocation.hasGeolocaitonFeature()) {
+        if (ejcGeolocation.hasGeolocationFeature()) {
             navigator.geolocation.getCurrentPosition(success, error, options);
         }
     },
@@ -31,13 +31,13 @@
             geolocationRef.invokeMethodAsync('RaiseOnWatchPosition', ejcGeolocation.toSerializeable(result));
         const error = (er) =>
             geolocationRef.invokeMethodAsync('RaiseOnWatchPositionError', er.code);
-        if (ejcGeolocation.hasGeolocaitonFeature()) {
+        if (ejcGeolocation.hasGeolocationFeature()) {
             return navigator.geolocation.watchPosition(success, error, options);
         }
         return 0;
     },
     clearWatch: function (watchId) {
-        if (ejcGeolocation.hasGeolocaitonFeature()) {
+        if (ejcGeolocation.hasGeolocationFeature()) {
             navigator.geolocation.clearWatch(watchId);
         }
     }
